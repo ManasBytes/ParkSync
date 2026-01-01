@@ -17,6 +17,7 @@ def create_app() :
     #initializers
     db.init_app(app)
     login_manager.init_app(app)
+    from app import models
     
     
     
