@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<h2 class="mb-4">All Bookings History</h2>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Parking Lot</th>
+                        <th>Spot</th>
+                        <th>Vehicle</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                        <th>Cost</th>
+                        <th>Payment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>#{{ booking.id }}</td>
+                        <td>
+                            <strong>{{ booking.user.username }}</strong><br>
+                            <small class="text-muted">{{ booking.user.email }}</small>
+                        </td>
+                        <td>
+                            {{ booking.get_lot_name() }}
+                            {% if booking.lot_name_snapshot %}
+                                <br><small class="text-muted">(Historical)</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {% if booking.is_active %}bg-primary{% else %}bg-secondary{% endif %}">
+                                {{ booking.get_spot_number() }}
+                            </span>
+                        </td>
+                        <td>{{ booking.vehicle_number }}</td>
+                        <td>{{ booking.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if booking.end_time %}
+                                {{ booking.end_time.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                                <span class="badge bg-warning">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ "%.2f"|format(booking.duration) }} hrs</td>
+                        <td>
+                            {% if booking.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Completed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>${{ "%.2f"|format(booking.cost) }}</strong>
+                            {% if booking.is_active %}
+                                <br><small class="text-muted">(ongoing)</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if booking.payment %}
+                                {% if booking.payment.is_paid %}
+                                    <span class="badge bg-success">Paid</span><br>
+                                    <small class="text-muted">
+                                        {% if booking.payment.payment_date %}
+                                            {{ booking.payment.payment_date.strftime('%Y-%m-%d') }}
+                                        {% endif %}
+                                    </small>
+                                {% else %}
+                                    <span class="badge bg-danger">Due</span><br>
+                                    <small class="text-muted">${{ "%.2f"|format(booking.payment.amount) }}</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if not bookings %}
+        <div class="alert alert-info text-center">
+            No bookings found.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

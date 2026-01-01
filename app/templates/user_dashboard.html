@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Welcome, {{ current_user.username }}!</h2>
+
+{% if active_reservation %}
+<div class="card mb-4 border-success">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">🚗 Your Active Booking</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Parking Lot:</strong> {{ active_reservation.spot.lot.name }}</p>
+                <p><strong>Spot Number:</strong> {{ active_reservation.spot.spot_number }}</p>
+                <p><strong>Vehicle:</strong> {{ active_reservation.vehicle_number }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Start Time:</strong> {{ active_reservation.start_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Duration:</strong> 
+                    {% set duration = active_reservation.calculate_duration_hours() %}
+                    {{ "%.2f"|format(duration) }} hours
+                </p>
+                <p><strong>Current Charge:</strong> 
+                    {% set cost = active_reservation.calculate_cost() %}
+                    ${{ "%.2f"|format(cost) }}
+                </p>
+            </div>
+        </div>
+        <a href="{{ url_for('user.checkout', reservation_id=active_reservation.id) }}" 
+           class="btn btn-danger" 
+           onclick="return confirm('Are you sure you want to check out?')">Check Out</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4>Available Parking Lots</h4>
+    </div>
+</div>
+
+<div class="row">
+    {% for lot in lots %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ lot.name }}</h5>
+                <p class="card-text">
+                    <strong>Total Spots:</strong> {{ lot.total_spots }}<br>
+                    <strong>Available:</strong> 
+                    <span class="badge bg-success">{{ lot.get_available_spots_count() }}</span><br>
+                    <strong>Booked:</strong> 
+                    <span class="badge bg-danger">{{ lot.get_booked_spots_count() }}</span><br>
+                    <strong>Price:</strong> ${{ lot.price_per_hour }}/hour
+                </p>
+                {% if active_reservation %}
+                    <button class="btn btn-secondary" disabled>Already Booked</button>
+                {% else %}
+                    {% if lot.get_available_spots_count() > 0 %}
+                        <a href="{{ url_for('user.book_lot', lot_id=lot.id) }}" class="btn btn-primary">Book Now</a>
+                    {% else %}
+                        <button class="btn btn-secondary" disabled>Fully Booked</button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if previous_reservations %}
+<div class="row mt-5">
+    <div class="col-12">
+        <h4>Previous Parking Lots Used</h4>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Parking Lot</th>
+                                <th>Spot</th>
+                                <th>Vehicle</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for res in previous_reservations %}
+                            {% set res_cost = res.calculate_cost() %}
+                            <tr>
+                                <td>{{ res.spot.lot.name }}</td>
+                                <td>{{ res.spot.spot_number }}</td>
+                                <td>{{ res.vehicle_number }}</td>
+                                <td>{{ res.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ res.end_time.strftime('%Y-%m-%d %H:%M') if res.end_time else 'N/A' }}</td>
+                                <td>${{ "%.2f"|format(res_cost) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

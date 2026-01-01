@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <h4 class="mb-0">🚗 Currently Booked Parking Spots</h4>
+        <small>Real-time active reservations with ongoing costs</small>
+    </div>
+    <div class="card-body">
+        {% if reservations %}
+        <div class="table-responsive">
+            <table class="table ">
+                <thead class="table-light">
+                    <tr>
+                        <th>User</th>
+                        <th>Parking Lot</th>
+                        <th>Spot #</th>
+                        <th>Vehicle</th>
+                        <th>Start Time</th>
+                        <th>Duration</th>
+                        <th>Ongoing Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr>
+                        <td>
+                            <strong>{{ reservation.user.username }}</strong><br>
+                            <small class="text-muted">{{ reservation.user.email }}</small>
+                        </td>
+                        <td>{{ reservation.get_lot_name() }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ reservation.get_spot_number() }}</span>
+                        </td>
+                        <td>{{ reservation.vehicle_number }}</td>
+                        <td>{{ reservation.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <strong>{{ "%.2f"|format(reservation.duration) }}</strong> hours
+                            {% if reservation.duration < 1 %}
+                                <br><small class="text-muted">({{ (reservation.duration * 60)|int }} minutes)</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong class="text-success">${{ "%.2f"|format(reservation.cost) }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {% if reservation.price_per_hour_snapshot %}
+                                    @ ${{ "%.2f"|format(reservation.price_per_hour_snapshot) }}/hr
+                                {% elif reservation.spot and reservation.spot.lot %}
+                                    @ ${{ "%.2f"|format(reservation.spot.lot.price_per_hour) }}/hr
+                                {% endif %}
+                            </small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="6" class="text-end"><strong>Total Active Ongoing Cost:</strong></td>
+                        <td>
+                            <strong class="text-success fs-5">
+                                ${{ "%.2f"|format(total_cost) }}
+                            </strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <i class="bi bi-info-circle"></i>
+            <strong>Note:</strong> The ongoing cost is calculated in real-time based on the duration parked and hourly rate. 
+            These amounts will be finalized when users check out.
+        </div>
+        {% else %}
+        <div class="alert alert-success text-center">
+            <i class="bi bi-check-circle"></i>
+            <strong>No active bookings at the moment.</strong>
+            <p class="mb-0">All parking spots are currently available.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

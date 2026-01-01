@@ -1,0 +1,192 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<h2 class="mb-4">Due Payments Overview</h2>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Unpaid Completed</h5>
+                <h2 class="mb-0">${{ "%.2f"|format(total_due_completed) }}</h2>
+                <small>{{ unpaid_payments|length }} transaction(s)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Currently Accruing</h5>
+                <h2 class="mb-0">${{ "%.2f"|format(total_due_active) }}</h2>
+                <small>{{ active_reservations|length }} active booking(s)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Total Due</h5>
+                <h2 class="mb-0">${{ "%.2f"|format(total_due) }}</h2>
+                <small>All outstanding amounts</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unpaid Completed Reservations -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">⚠️ Unpaid Completed Reservations</h5>
+        <small>These customers have checked out but haven't paid yet</small>
+    </div>
+    <div class="card-body">
+        {% if unpaid_payments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>User</th>
+                        <th>Parking Lot</th>
+                        <th>Spot</th>
+                        <th>Vehicle</th>
+                        <th>Duration</th>
+                        <th>Amount Due</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in unpaid_payments %}
+                    <tr>
+                        <td>#{{ payment.id }}</td>
+                        <td>
+                            <strong>{{ payment.reservation.user.username }}</strong><br>
+                            <small class="text-muted">{{ payment.reservation.user.email }}</small>
+                        </td>
+                        <td>{{ payment.reservation.get_lot_name() }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ payment.reservation.get_spot_number() }}</span>
+                        </td>
+                        <td>{{ payment.reservation.vehicle_number }}</td>
+                        <td>{{ "%.2f"|format(payment.reservation.duration) }} hrs</td>
+                        <td>
+                            <strong class="text-danger">${{ "%.2f"|format(payment.amount) }}</strong>
+                        </td>
+                        <td>{{ payment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="6" class="text-end"><strong>Subtotal (Unpaid Completed):</strong></td>
+                        <td colspan="2">
+                            <strong class="text-danger fs-5">${{ "%.2f"|format(total_due_completed) }}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-success text-center">
+            <i class="bi bi-check-circle"></i> No unpaid completed reservations.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Active Reservations (Currently Accruing) -->
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">🔄 Active Reservations (Currently Accruing)</h5>
+        <small>These customers are still parked - costs are ongoing</small>
+    </div>
+    <div class="card-body">
+        {% if active_reservations %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Reservation ID</th>
+                        <th>User</th>
+                        <th>Parking Lot</th>
+                        <th>Spot</th>
+                        <th>Vehicle</th>
+                        <th>Start Time</th>
+                        <th>Duration</th>
+                        <th>Current Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in active_reservations %}
+                    <tr>
+                        <td>#{{ reservation.id }}</td>
+                        <td>
+                            <strong>{{ reservation.user.username }}</strong><br>
+                            <small class="text-muted">{{ reservation.user.email }}</small>
+                        </td>
+                        <td>{{ reservation.get_lot_name() }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ reservation.get_spot_number() }}</span>
+                        </td>
+                        <td>{{ reservation.vehicle_number }}</td>
+                        <td>{{ reservation.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <strong>{{ "%.2f"|format(reservation.duration) }}</strong> hrs
+                        </td>
+                        <td>
+                            <strong class="text-info">${{ "%.2f"|format(reservation.cost) }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {% if reservation.price_per_hour_snapshot %}
+                                    @ ${{ "%.2f"|format(reservation.price_per_hour_snapshot) }}/hr
+                                {% elif reservation.spot and reservation.spot.lot %}
+                                    @ ${{ "%.2f"|format(reservation.spot.lot.price_per_hour) }}/hr
+                                {% endif %}
+                            </small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="7" class="text-end"><strong>Subtotal (Currently Accruing):</strong></td>
+                        <td>
+                            <strong class="text-info fs-5">${{ "%.2f"|format(total_due_active) }}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="alert alert-warning mt-3">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Note:</strong> These amounts are calculated in real-time and will continue to increase until the customers check out.
+        </div>
+        {% else %}
+        <div class="alert alert-success text-center">
+            <i class="bi bi-check-circle"></i> No active reservations at the moment.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Grand Total -->
+<div class="card mt-4 border-danger">
+    <div class="card-body bg-light">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h4 class="mb-0">Total Amount Due (All Outstanding)</h4>
+                <small class="text-muted">Unpaid completed + Currently accruing</small>
+            </div>
+            <div class="col-md-4 text-end">
+                <h2 class="text-danger mb-0">${{ "%.2f"|format(total_due) }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

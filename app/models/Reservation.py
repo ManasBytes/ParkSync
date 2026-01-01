@@ -9,7 +9,7 @@ class Reservation(db.Model):
     
     
     start_time = db.Column(db.DateTime, nullable = False, server_default = func.now())
-    end_time = db.Column(db.DateTime, nullable = False)
+    end_time = db.Column(db.DateTime, nullable = True)
     is_active = db.Column(db.Boolean, nullable = False, default = False)
     
     

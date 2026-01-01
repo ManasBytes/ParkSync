@@ -8,7 +8,7 @@ class ParkingSpot(db.Model):
     
     is_booked = db.Column(db.Boolean, nullable = False, default = False)
     
-    reservation = db.relationship('Reservation', backref = 'spot' , lazy = True)
+    reservations = db.relationship('Reservation', backref = 'spot' , lazy = True)
     
     def __repr__(self):
         return f'<Spot {self.spot_number} in lot {self.lot_id}>'

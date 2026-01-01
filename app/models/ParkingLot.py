@@ -14,6 +14,12 @@ class ParkingLot(db.Model):
     def get_available_spots_count(self):
         return sum(1 for spot in self.spots if not spot.is_booked)
     
+    def get_booked_spots_count(self):
+        return sum(1 for spot in self.spots if spot.is_booked)
+    
+    def __repr__(self):
+        return f'<ParkingLot {self.name}>'
+    
     
     
     

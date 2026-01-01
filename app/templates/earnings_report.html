@@ -1,0 +1,158 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<h2 class="mb-4">Earnings Report</h2>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Total Earnings (Paid)</h5>
+                <h2 class="mb-0">${{ "%.2f"|format(total_earnings) }}</h2>
+                <small>{{ paid_payments|length }} transaction(s)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Total Due (Unpaid)</h5>
+                <h2 class="mb-0">${{ "%.2f"|format(total_due) }}</h2>
+                <small>{{ unpaid_count }} outstanding</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total Revenue</h5>
+                <h2 class="mb-0">${{ "%.2f"|format(total_revenue) }}</h2>
+                <small>Paid + Due</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Paid Transactions -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">✓ Paid Transactions</h5>
+        <small>Completed and cleared payments</small>
+    </div>
+    <div class="card-body">
+        {% if paid_payments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>User</th>
+                        <th>Parking Lot</th>
+                        <th>Spot</th>
+                        <th>Vehicle</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Duration</th>
+                        <th>Amount</th>
+                        <th>Paid On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in paid_payments %}
+                    <tr>
+                        <td>#{{ payment.id }}</td>
+                        <td>
+                            <strong>{{ payment.reservation.user.username }}</strong><br>
+                            <small class="text-muted">{{ payment.reservation.user.email }}</small>
+                        </td>
+                        <td>{{ payment.reservation.get_lot_name() }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ payment.reservation.get_spot_number() }}</span>
+                        </td>
+                        <td>{{ payment.reservation.vehicle_number }}</td>
+                        <td>{{ payment.reservation.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if payment.reservation.end_time %}
+                                {{ payment.reservation.end_time.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>{{ "%.2f"|format(payment.reservation.duration) }} hrs</td>
+                        <td>
+                            <strong class="text-success">${{ "%.2f"|format(payment.amount) }}</strong>
+                        </td>
+                        <td>
+                            {% if payment.payment_date %}
+                                {{ payment.payment_date.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="8" class="text-end"><strong>Total Paid:</strong></td>
+                        <td colspan="2">
+                            <strong class="text-success fs-5">${{ "%.2f"|format(total_earnings) }}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> No paid transactions yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Summary Info -->
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">📊 Financial Summary</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Revenue Breakdown</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Total Collected:</strong> <span class="text-success">${{ "%.2f"|format(total_earnings) }}</span></li>
+                    <li><strong>Outstanding:</strong> <span class="text-danger">${{ "%.2f"|format(total_due) }}</span></li>
+                    <li><strong>Total Revenue:</strong> <span class="text-primary">${{ "%.2f"|format(total_revenue) }}</span></li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Transaction Statistics</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Paid Transactions:</strong> {{ paid_payments|length }}</li>
+                    <li><strong>Outstanding Payments:</strong> {{ unpaid_count }}</li>
+                    <li><strong>Collection Rate:</strong> 
+                        {% if total_revenue > 0 %}
+                            {{ "%.1f"|format((total_earnings / total_revenue) * 100) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if unpaid_count > 0 %}
+        <div class="alert alert-warning mt-3">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Note:</strong> There are {{ unpaid_count }} outstanding payment(s) totaling ${{ "%.2f"|format(total_due) }}. 
+            <a href="{{ url_for('admin.due_payments') }}" class="alert-link">View due payments</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

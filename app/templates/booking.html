@@ -1,0 +1,140 @@
+{% extends "layout.html" %}
+
+{% block extra_css %}
+<style>
+    .spot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 10px;
+        margin: 20px 0;
+    }
+    
+    .spot-item {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+    
+    .spot-available {
+        background: #d4edda;
+        border-color: #28a745;
+    }
+    
+    .spot-available:hover {
+        background: #28a745;
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    .spot-booked {
+        background: #f8d7da;
+        border-color: #dc3545;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    .spot-selected {
+        background: #6366f1 !important;
+        color: white;
+        border-color: #4f46e5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Book a Spot in {{ lot.name }}</h2>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Total Spots:</strong> {{ lot.total_spots }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Available:</strong> <span class="badge bg-success">{{ lot.get_available_spots_count() }}</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Price:</strong> ${{ lot.price_per_hour }}/hour</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5>Select a Parking Spot</h5>
+                <small class="text-muted">
+                    <span style="color: #28a745;">■</span> Available 
+                    <span style="color: #dc3545; margin-left: 15px;">■</span> Booked
+                </small>
+            </div>
+            <div class="card-body">
+                <div class="spot-grid" id="spotGrid">
+                    {% for spot in lot.spots %}
+                    <div class="spot-item {% if spot.is_booked %}spot-booked{% else %}spot-available{% endif %}" 
+                         data-spot-id="{{ spot.id }}"
+                         {% if not spot.is_booked %}onclick="selectSpot({{ spot.id }}, {{ spot.spot_number }})"{% endif %}>
+                        {{ spot.spot_number }}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <form method="POST" id="bookingForm" class="mt-4">
+                    {{ form.hidden_tag() }}
+                    {{ form.spot_id() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.vehicle_number.label(class="form-label") }}
+                                {{ form.vehicle_number(class="form-control", placeholder="e.g., ABC-1234") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Selected Spot</label>
+                                <input type="text" class="form-control" id="selectedSpotDisplay" readonly placeholder="Click a spot">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {{ form.submit(class="btn btn-primary btn-lg", id="submitBtn", disabled=true) }}
+                    <a href="{{ url_for('user.dashboard') }}" class="btn btn-secondary btn-lg">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedSpot = null;
+    
+    function selectSpot(spotId, spotNumber) {
+        // Remove previous selection
+        document.querySelectorAll('.spot-selected').forEach(el => {
+            el.classList.remove('spot-selected');
+        });
+        
+        // Add new selection
+        const spotElement = document.querySelector(`[data-spot-id="${spotId}"]`);
+        spotElement.classList.add('spot-selected');
+        
+        // Update form
+        document.getElementById('spot_id').value = spotId;
+        document.getElementById('selectedSpotDisplay').value = `Spot ${spotNumber}`;
+        document.getElementById('submitBtn').disabled = false;
+        
+        selectedSpot = spotId;
+    }
+</script>
+{% endblock %}

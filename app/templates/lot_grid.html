@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block extra_css %}
+<style>
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 12px;
+        margin: 20px 0;
+    }
+    
+    .grid-spot {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        padding: 5px;
+    }
+    
+    .spot-available {
+        background: linear-gradient(135deg, #d4edda 0%, #a8e6cf 100%);
+        border-color: #28a745;
+        color: #155724;
+    }
+    
+    .spot-booked {
+        background: linear-gradient(135deg, #f8d7da 0%, #ffb3ba 100%);
+        border-color: #dc3545;
+        color: #721c24;
+    }
+    
+    .spot-number {
+        font-size: 1.2rem;
+    }
+    
+    .spot-info {
+        font-size: 0.7rem;
+        margin-top: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">{{ lot.name }} - Grid View</h4>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <p><strong>Total Spots:</strong> {{ lot.total_spots }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Available:</strong> <span class="badge bg-success">{{ lot.get_available_spots_count() }}</span></p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Booked:</strong> <span class="badge bg-danger">{{ lot.get_booked_spots_count() }}</span></p>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <span class="badge bg-success me-2">■ Available</span>
+            <span class="badge bg-danger">■ Booked</span>
+        </div>
+        
+        <div class="grid-container">
+            {% for spot in lot.spots|sort(attribute='spot_number') %}
+            <div class="grid-spot {% if spot.is_booked %}spot-booked{% else %}spot-available{% endif %}">
+                <div class="spot-number">{{ spot.spot_number }}</div>
+                <div class="spot-info">
+                    {% if spot.is_booked %}
+                        {% set active_res = spot.reservations|selectattr('is_active', 'equalto', True)|first %}
+                        {% if active_res %}
+                            {{ active_res.vehicle_number }}
+                        {% endif %}
+                    {% else %}
+                        Free
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

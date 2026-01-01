@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center" style="margin-top: 50px;">
+    <div class="col-md-6">
+        <div class="card shadow-lg">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">✓ Checkout Complete!</h4>
+            </div>
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="alert alert-info">
+                        <h5 class="mb-3">Parking Session Summary</h5>
+                        <div class="row">
+                            <div class="col-6 text-end">
+                                <strong>Parking Lot:</strong>
+                            </div>
+                            <div class="col-6 text-start">
+                                {{ payment.reservation.get_lot_name() }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-end">
+                                <strong>Spot Number:</strong>
+                            </div>
+                            <div class="col-6 text-start">
+                                {{ payment.reservation.get_spot_number() }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-end">
+                                <strong>Vehicle:</strong>
+                            </div>
+                            <div class="col-6 text-start">
+                                {{ payment.reservation.vehicle_number }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-end">
+                                <strong>Duration:</strong>
+                            </div>
+                            <div class="col-6 text-start">
+                                {{ "%.2f"|format(payment.reservation.calculate_duration_hours()) }} hours
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-6 text-end">
+                                <strong style="font-size: 1.2rem;">Total Amount:</strong>
+                            </div>
+                            <div class="col-6 text-start">
+                                <strong style="font-size: 1.5rem; color: #28a745;">${{ "%.2f"|format(payment.amount) }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="text-center mb-4">Payment Options</h5>
+                
+                <div class="d-grid gap-3">
+                    <a href="{{ url_for('user.pay_now', payment_id=payment.id) }}" 
+                       class="btn btn-success btn-lg">
+                        <i class="bi bi-credit-card"></i> Pay Now
+                    </a>
+                    
+                    <a href="{{ url_for('user.pay_later', payment_id=payment.id) }}" 
+                       class="btn btn-warning btn-lg">
+                        <i class="bi bi-clock"></i> Pay Later
+                    </a>
+                </div>
+
+                <div class="alert alert-light mt-4">
+                    <small>
+                        <strong>Pay Now:</strong> Payment will be marked as completed immediately.<br>
+                        <strong>Pay Later:</strong> Payment will remain due and can be settled later.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
