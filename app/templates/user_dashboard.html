@@ -11,8 +11,8 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
-                <p><strong>Parking Lot:</strong> {{ active_reservation.spot.lot.name }}</p>
-                <p><strong>Spot Number:</strong> {{ active_reservation.spot.spot_number }}</p>
+                <p><strong>Parking Lot:</strong> {{ active_reservation.get_lot_name }}</p>
+                <p><strong>Spot Number:</strong> {{ active_reservation.get_spot_number }}</p>
                 <p><strong>Vehicle:</strong> {{ active_reservation.vehicle_number }}</p>
             </div>
             <div class="col-md-6">

@@ -56,35 +56,32 @@ class Reservation(db.Model):
     def get_lot_name(self):
         if self.lot_name_snapshot:
             return self.lot_name_snapshot
-        try:
-            return self.spot.lot.name
-        except:
-            return "Unknown Lot"
+        
+        if self.spot and self.spot.lot:
+            return  self.spot.lot.name
+        return "Deleted Lot"
         
         
         
     def get_spot_number(self):
         if self.spot_number_snapshot:
             return self.spot_number_snapshot
-        try:
+        if self.spot and self.spot.lot:
             return self.spot.spot_number
-        except:
-            return "N/A"
+        return "Deleted Spot"
         
     def save_snapshot(self):
-        try:
-            if self.spot and self.spot.lot:
-                self.lot_name_snapshot = self.spot.lot.name
-                self.spot_number_snapshot = self.spot.spot_number
-            
-                
-                
-        except:
-            return "Adding Snapshot went fatally wrong"
+        if not self.spot or not self.spot.lot:
+            return
+
+        self.lot_name_snapshot = self.spot.lot.name
+        self.spot_number_snapshot = self.spot.spot_number
+        self.price_per_hour_snapshot = self.spot.lot.price_per_hour
+
         
         
-        def __repr__(self):
-            return f'<Reservation {self.id}, by user {self.user_id}>'
+    def __repr__(self):
+        return f'<Reservation {self.id}, by user {self.user_id}>'
         
     
     

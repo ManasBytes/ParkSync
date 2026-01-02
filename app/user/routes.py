@@ -77,7 +77,8 @@ def book_lot(lot_id):
             reservation = Reservation(
                 user_id=current_user.id,
                 spot_id=spot.id,
-                vehicle_number=form.vehicle_number.data
+                vehicle_number=form.vehicle_number.data,
+                is_active = True
             )
             reservation.save_snapshot()  # Save lot and spot details
             spot.is_booked = True

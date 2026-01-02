@@ -5,7 +5,7 @@ class Payment(db.Model):
     reservation_id  = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable = False)
     amount = db.Column(db.Float, nullable =  False)
     is_paid = db.Column (db.Boolean, nullable = False, default = False)
-    payment_date = db.Column(db.DateTime, nullable = False)
+    payment_date = db.Column(db.DateTime, nullable = True)
     created_at = db.Column(db.DateTime, server_default = func.now())
     
     def __repr__(self):

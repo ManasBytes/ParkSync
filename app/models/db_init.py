@@ -20,8 +20,14 @@ def seed_database():
             email='admin@parksync.com',
             is_admin=True
         )
+        first_user = User(
+            username = 'manass',
+            email ='manasarmo.1819r@gmail.com'
+        )
         admin.set_password('admin123')
+        first_user.set_password("manas123")
         db.session.add(admin)
+        db.session.add(first_user)
         db.session.commit()
 
         print("\n" + "="*60)
