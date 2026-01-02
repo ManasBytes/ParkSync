@@ -1,6 +1,10 @@
 from app.extensions import db
 from sqlalchemy import func
 from .ParkingSpot import ParkingSpot
+from datetime import datetime
+
+
+
 class Reservation(db.Model):
     id = db.Column(db.Integer, primary_key = True , autoincrement = True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
@@ -25,16 +29,14 @@ class Reservation(db.Model):
     
     
     def calculate_duration_hours(self):
-        if self.end_time:
-            duration = self.end_time - self.start_time
-        else:
-            duration = func.now() - self.start_time
+        end = self.end_time or datetime.now()
+        duration = end - self.start_time
         
         return duration.total_seconds()/3600
     
     
     def calculate_cost(self):
-        hours = self.calculate_duration_hours
+        hours = self.calculate_duration_hours()
         
         if self.price_per_hour_snapshot:
             price = self.price_per_hour_snapshot
